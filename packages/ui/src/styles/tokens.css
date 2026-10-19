@@ -1,0 +1,24 @@
+:root {
+ --brand-primary:#0756e9;--brand-deep:#073489;--brand-accent:#ff850d;
+ --color-background:#f8faff;--color-surface:#ffffff;--color-surface-subtle:#edf3ff;
+ --color-foreground:#101d35;--color-muted:#64748b;--color-border:#e7eaf2;
+ --color-header:#073cae;--color-hero-highlight:#3c9eff;--color-hero-mid:#126cdd;
+ --color-promo-light:#e4e8ef;--color-promo-light-end:#f7f9fc;
+ --color-delivery:#e1ebff;--color-notice:#fff0c7;--color-notice-text:#775318;
+ --radius-sm:5px;--radius-md:8px;--radius-lg:12px;--radius-xl:14px;
+ --shadow-overlay:0 10px 35px #071e4a30;
+}
+:root[data-theme="dark"] {
+ --brand-primary:#4b8cff;--brand-deep:#071e48;--brand-accent:#ff9c36;
+ --color-background:#0c1425;--color-surface:#17233a;--color-surface-subtle:#223450;
+ --color-foreground:#f2f6ff;--color-muted:#acb9ce;--color-border:#34445f;
+ --color-header:#0b2150;--color-hero-highlight:#1b65c0;--color-hero-mid:#0e428c;
+ --color-promo-light:#273851;--color-promo-light-end:#192b45;
+ --color-delivery:#1c345b;--color-notice:#392f1c;--color-notice-text:#ffe2a2;
+}
+@theme inline {
+ --color-background:var(--color-background);--color-foreground:var(--color-foreground);
+ --color-primary:var(--brand-primary);--color-card:var(--color-surface);
+ --color-muted-foreground:var(--color-muted);--color-border:var(--color-border);
+ --radius-md:var(--radius-md);--radius-lg:var(--radius-lg);
+}
