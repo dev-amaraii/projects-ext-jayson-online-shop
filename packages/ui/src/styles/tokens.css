@@ -17,8 +17,9 @@
  --color-delivery:#1c345b;--color-notice:#392f1c;--color-notice-text:#ffe2a2;
 }
 @theme inline {
- --color-background:var(--color-background);--color-foreground:var(--color-foreground);
- --color-primary:var(--brand-primary);--color-card:var(--color-surface);
- --color-muted-foreground:var(--color-muted);--color-border:var(--color-border);
- --radius-md:var(--radius-md);--radius-lg:var(--radius-lg);
+ --color-shop-background:var(--color-background);
+ --color-shop-foreground:var(--color-foreground);
+ --color-shop-primary:var(--brand-primary);
+ --color-shop-card:var(--color-surface);
+ --color-shop-border:var(--color-border);
 }
