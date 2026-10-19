@@ -6,7 +6,7 @@
     "dev": "vite dev --host 0.0.0.0",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test src/features/cart/model/*.test.ts"
+    "test": "node --experimental-strip-types --test src/features/cart/model/*.test.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.0",
