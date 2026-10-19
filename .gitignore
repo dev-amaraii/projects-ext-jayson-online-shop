@@ -1,0 +1,8 @@
+node_modules
+.turbo
+.output
+dist
+.env
+.env.*
+!.env.example
+apps/storefront/src/routeTree.gen.ts
