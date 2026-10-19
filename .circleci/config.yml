@@ -32,6 +32,9 @@ jobs:
           name: Production build and generate TanStack routes
           command: corepack pnpm build
       - run:
+          name: Run storefront unit tests
+          command: corepack pnpm test
+      - run:
           name: Typecheck generated application
           command: corepack pnpm typecheck
 
