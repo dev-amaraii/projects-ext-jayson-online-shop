@@ -1,12 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ThemeToggle } from '../../../features/theme/ui/theme-toggle'
 import { Search, ShoppingCart, UserRound, Menu, X, Truck, ShieldCheck, WalletCards, Headphones, Heart, Minus, Plus, ArrowRight, Store, Package, CheckCircle2 } from 'lucide-react'
 import { categories, naira, products, type Category } from '../../../entities/product/model/catalog'
-import { useCart } from '../../../features/cart/model/cart-store'
+import { connectCartPersistence, useCart } from '../../../features/cart/model/cart-store'
 type Filter = Category|'All'
 export function Home(){
  const [filter,setFilter]=useState<Filter>('All'),[query,setQuery]=useState(''),[cartOpen,setCartOpen]=useState(false),[selected,setSelected]=useState<string|null>(null),[menuOpen,setMenuOpen]=useState(false)
  const {items,add,change}=useCart()
+ useEffect(() => connectCartPersistence(window.localStorage), [])
  const count=Object.values(items).reduce((a,b)=>a+b,0)
  const subtotal=products.reduce((sum,p)=>sum+p.price*(items[p.id]||0),0)
  const filtered=useMemo(()=>products.filter(p=>(filter==='All'||p.category===filter)&&p.name.toLowerCase().includes(query.toLowerCase())),[filter,query])
