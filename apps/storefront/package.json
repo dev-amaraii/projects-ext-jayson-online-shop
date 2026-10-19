@@ -8,23 +8,23 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@tanstack/react-start": "^1.132.0",
-    "@tanstack/react-router": "^1.132.0",
-    "@tanstack/react-query": "^5.90.0",
     "@tailwindcss/vite": "^4.1.0",
-    "tailwindcss": "^4.1.0",
+    "@tanstack/react-query": "^5.90.0",
+    "@tanstack/react-router": "^1.132.0",
+    "@tanstack/react-start": "^1.132.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.468.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "zustand": "^5.0.0",
-    "lucide-react": "^0.468.0",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^3.3.0"
+    "tailwind-merge": "^3.3.0",
+    "tailwindcss": "^4.1.0",
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^6.1.2",
     "typescript": "^5.8.0",
-    "vite": "^8.0.0",
-    "vite-tsconfig-paths": "^5.1.0"
+    "vite": "^8.0.0"
   }
 }
