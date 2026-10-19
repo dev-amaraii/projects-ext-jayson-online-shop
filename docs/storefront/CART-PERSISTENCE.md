@@ -19,5 +19,10 @@ Persist only product IDs and positive integer quantities in browser localStorage
 ## Out of scope
 Real stock checks, product pricing guarantees, checkout, accounts, backend persistence and payment processing.
 
-## Status
-Specification only; implementation and tests pending.
+## Implementation status (2026-10-19)
+- Implemented `cart-persistence.ts` with a versioned storage key and validated product IDs/quantities.
+- Connected client-only hydration and Zustand state subscription from the homepage.
+- Added Node-native cart tests (`cart-persistence.test.mjs`), `pnpm test` scripts, and a CircleCI test step.
+- Nine isolated tests passed locally against a reconstructed copy of the persistence logic and catalogue IDs; **the actual repository test command and full build/typecheck have not been run or verified yet**.
+- CircleCI status is not verified; the latest GitHub commit had no reported combined statuses.
+- Pending: execute `corepack pnpm install --frozen-lockfile && corepack pnpm build && corepack pnpm test && corepack pnpm typecheck` in a checkout, inspect failures, and verify mobile/cart behavior.
