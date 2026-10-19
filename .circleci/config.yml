@@ -26,12 +26,14 @@ jobs:
           key: pnpm-v1-{{ checksum "pnpm-lock.yaml" }}
           paths:
             - ~/.local/share/pnpm/store
+      # TanStack Start generates src/routeTree.gen.ts during Vite build.
+      # On a fresh CI checkout it does not exist yet, so build before tsc.
       - run:
-          name: Typecheck
-          command: corepack pnpm typecheck
-      - run:
-          name: Production build
+          name: Production build and generate TanStack routes
           command: corepack pnpm build
+      - run:
+          name: Typecheck generated application
+          command: corepack pnpm typecheck
 
 workflows:
   manually-requested-validation:
