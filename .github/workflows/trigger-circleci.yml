@@ -1,0 +1,36 @@
+name: Trigger CircleCI (on demand)
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to validate'
+        required: true
+        type: choice
+        options:
+          - feat/storefront-demo
+          - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: circleci-trigger-${{ inputs.branch }}
+  cancel-in-progress: false
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      CIRCLE_TOKEN: ${{ secrets.CIRCLE_TOKEN }}
+      CIRCLE_PROJECT_SLUG: ${{ vars.CIRCLE_PROJECT_SLUG }}
+      CIRCLE_DEFINITION_ID: ${{ vars.CIRCLE_DEFINITION_ID }}
+      CIRCLE_ALLOWED_BRANCHES: feat/storefront-demo,main
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          persist-credentials: false
+      - name: Validate configuration and trigger CircleCI
+        run: node scripts/circleci.mjs trigger "${{ inputs.branch }}" --execute
