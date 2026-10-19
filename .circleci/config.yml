@@ -1,0 +1,46 @@
+version: 2.1
+
+parameters:
+  run_validation:
+    type: boolean
+    default: false
+
+jobs:
+  validate:
+    docker:
+      - image: cimg/node:24.13
+    resource_class: small
+    steps:
+      - checkout
+      - run:
+          name: Enable pinned pnpm
+          command: |
+            corepack enable
+            corepack prepare pnpm@10.11.0 --activate
+      - restore_cache:
+          keys:
+            - pnpm-v1-{{ checksum "pnpm-lock.yaml" }}
+      - run:
+          name: Install dependencies
+          command: pnpm install --frozen-lockfile
+      - save_cache:
+          key: pnpm-v1-{{ checksum "pnpm-lock.yaml" }}
+          paths:
+            - ~/.local/share/pnpm/store
+      - run:
+          name: Typecheck
+          command: pnpm typecheck
+      - run:
+          name: Production build
+          command: pnpm build
+
+workflows:
+  manually-requested-validation:
+    when: << pipeline.parameters.run_validation >>
+    jobs:
+      - validate:
+          filters:
+            branches:
+              only:
+                - feat/storefront-demo
+                - main
