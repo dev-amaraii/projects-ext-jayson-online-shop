@@ -13,26 +13,25 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Enable pinned pnpm
+          name: Verify pinned pnpm via Corepack
           command: |
-            corepack enable
-            corepack prepare pnpm@10.11.0 --activate
+            corepack pnpm --version
       - restore_cache:
           keys:
             - pnpm-v1-{{ checksum "pnpm-lock.yaml" }}
       - run:
           name: Install dependencies
-          command: pnpm install --frozen-lockfile
+          command: corepack pnpm install --frozen-lockfile
       - save_cache:
           key: pnpm-v1-{{ checksum "pnpm-lock.yaml" }}
           paths:
             - ~/.local/share/pnpm/store
       - run:
           name: Typecheck
-          command: pnpm typecheck
+          command: corepack pnpm typecheck
       - run:
           name: Production build
-          command: pnpm build
+          command: corepack pnpm build
 
 workflows:
   manually-requested-validation:
