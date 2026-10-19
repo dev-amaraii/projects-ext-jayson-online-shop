@@ -1,4 +1,4 @@
-import { products } from '../../../entities/product/model/catalog'
+import { products } from '../../../entities/product/model/catalog.ts'
 
 export const CART_STORAGE_KEY = 'jayson-cart-v1'
 export const MAX_CART_QUANTITY = 99
