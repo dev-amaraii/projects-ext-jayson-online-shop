@@ -103,7 +103,8 @@ export function sanitizeOrders(input: unknown): DemoOrder[] {
   if (!Object.keys(safeItems).length) continue
   const amounts = [item.subtotal, item.discount, item.delivery, item.total]
   if (!amounts.every(value => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0)) continue
-  if (item.total !== item.subtotal - item.discount + item.delivery || item.discount > item.subtotal) continue
+  const [subtotal, discount, delivery, total] = amounts as number[]
+  if (total !== subtotal - discount + delivery || discount > subtotal) continue
   seen.add(item.id)
   result.push({
    id: item.id, createdAt: item.createdAt, items: safeItems,
