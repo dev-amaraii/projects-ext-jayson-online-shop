@@ -7,6 +7,7 @@ Scenario: Search narrows the catalogue
   And I type "headphones" into the field "Search products"
   Then the text "Wireless Headphones" should exist
   And I should not see the text "Smartwatch"
+  And I should not see the text "INTERACTIVE CLIENT PREVIEW"
 
 @preview @cart
 Scenario: Customer can add a specific product to the demo cart
