@@ -62,9 +62,11 @@ jobs:
             npx playwright install chromium
       - run:
           name: Start storefront preview server
+          background: true
+          command: corepack pnpm --filter @jayson/storefront dev --host 127.0.0.1 --port 3000 > /tmp/jayson-storefront.log 2>&1
+      - run:
+          name: Wait for storefront preview server
           command: |
-            corepack pnpm --filter @jayson/storefront dev --host 127.0.0.1 --port 3000 > /tmp/jayson-storefront.log 2>&1 &
-            echo $! > /tmp/jayson-storefront.pid
             for i in $(seq 1 60); do
               if curl --fail --silent http://127.0.0.1:3000/ >/dev/null; then exit 0; fi
               sleep 2
@@ -74,6 +76,7 @@ jobs:
       - run:
           name: Execute QA Intel browser smoke scenarios
           command: |
+            set -o pipefail
             mkdir -p .qa-results/artifacts
             /tmp/jayson-qa-runner/node_modules/.bin/qa-runner tests/features/storefront-preview.feature \
               --base-url http://127.0.0.1:3000 \
