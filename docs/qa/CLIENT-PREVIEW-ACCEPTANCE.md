@@ -60,3 +60,13 @@ node scripts/circleci.mjs trigger feat/storefront-demo --preview-qa --execute
 ```
 
 Do **not** omit `--preview-qa`: the default trigger continues to run only build/unit/typecheck validation. After the run, inspect `manually-requested-preview-qa`, and download the QA Intel JSON/SQLite/artifacts. The browser suite requires a running storefront server; CircleCI runs a preview development server for the test job, not a public deployment. Do not record the QA gate as passed until the workflow completes successfully.
+
+## First QA Intel execution — CircleCI pipeline #5 (2026-10-20)
+- Source commit: `3287dc7` on `feat/storefront-demo`.
+- QA Intel package installation, application build, local server startup and runner invocation **succeeded**.
+- QA Intel summary: **four contracts, two passed, two failed**.
+- Passed: product discovery/search scenario (did not exclude unrelated products), category browsing.
+- Failed: cart action selected the ambiguous `Add to Cart` accessible name (12 matches); empty-search recovery timed out waiting for `Clear filters` (0 matches).
+- The original feature mistakenly combined intermediate assertions with later state-changing steps. QA Intel's compiled contracts run steps first, then assertions, so intermediate states require separate scenarios.
+- Follow-up fixes: product-specific accessible add-to-cart labels, explicit post-hydration marker, QA Intel wait for `testid:storefront-hydrated`, separate cart-add/clear and empty-state/recovery scenarios, and negative search assertions to avoid false passes.
+- **Current status: post-fix results unverified.** The new six-scenario smoke suite has not yet been executed in CircleCI. Do not deploy based on the passing previous validation job or partially passing pipeline #5.
