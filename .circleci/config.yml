@@ -40,6 +40,9 @@ jobs:
       - run:
           name: Typecheck generated application
           command: corepack pnpm typecheck
+      - run:
+          name: Build static Cloudflare Pages client preview
+          command: corepack pnpm --filter @jayson/storefront build:pages
 
   preview-qa:
     docker:
@@ -54,6 +57,9 @@ jobs:
           name: Build storefront
           command: corepack pnpm build
       - run:
+          name: Build exact Cloudflare Pages client-preview artifact
+          command: corepack pnpm --filter @jayson/storefront build:pages
+      - run:
           name: Install QA Intel in isolated runner directory
           command: |
             mkdir -p /tmp/jayson-qa-runner
@@ -63,7 +69,7 @@ jobs:
       - run:
           name: Start storefront preview server
           background: true
-          command: corepack pnpm --filter @jayson/storefront dev --host 127.0.0.1 --port 3000 > /tmp/jayson-storefront.log 2>&1
+          command: corepack pnpm --filter @jayson/storefront preview:pages > /tmp/jayson-storefront.log 2>&1
       - run:
           name: Wait for storefront preview server
           command: |
