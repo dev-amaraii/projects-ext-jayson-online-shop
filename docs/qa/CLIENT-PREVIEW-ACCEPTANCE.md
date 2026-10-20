@@ -1,8 +1,8 @@
 # Jayson Tech — QA Intel client-preview acceptance contract
 
-Status (2026-10-20): **v1 client preview deployed; v2 interactive flow implemented in branch; updated QA not yet run**.
+Status (2026-10-20): **v1 client preview deployed; v2 interactive flow QA passed in CircleCI pipeline #8; the separately gated remote release has not been executed.**
 
-The Cloudflare Pages project `jayson-tech-client-preview` was created and a prior, more limited frontend preview was deployed successfully. CircleCI pipeline #6 passed the preceding QA Intel smoke suite against the earlier development-server configuration. **Neither result validates the new v2 flow.** Do not announce v2 as ready until the new tests pass and its static artifact is deployed.
+The Cloudflare Pages project `jayson-tech-client-preview` was created and a prior, more limited frontend preview was deployed successfully. CircleCI pipeline #8 successfully ran the v2 static Pages build, unit/type checks, QA Intel and responsive browser checks. The new release workflow must independently re-run QA for its approved commit before uploading; do not announce v2 as deployed yet.
 
 ## Release intent
 
@@ -52,17 +52,16 @@ node scripts/circleci.mjs trigger feat/storefront-demo --preview-qa --execute
 
 The first trigger command is **dry-run only**. Confirm it shows `"run_preview_qa": true`. The second launches the pipeline. Do not substitute the standard validation trigger. The CI workflow must remain explicitly requested, not automatically run per Git push.
 
-## Pages rollout only after validation
+## Remote Pages rollout after separate approval and validation
 
 Pages project: `jayson-tech-client-preview`; manual deployment, Git connection disabled.
 
-From **inside** `apps/storefront` after updating and validating the exact branch:
+Use the NEN CI bridge's distinct `action:release` command, restricted to `feat/storefront-demo`, an approved 40-character commit SHA, and the exact project. The `run_preview_release=true` CircleCI workflow reruns the static build, unit/type, QA Intel and mobile/desktop checks before the `deploy-preview` job may begin. It promotes the **identical QA-tested workspace artifact**, not an independent rebuild.
 
-```bash
-corepack pnpm build:pages
-npx wrangler pages deploy dist/pages --project-name jayson-tech-client-preview --branch feat/storefront-demo
-```
+Required one-time configuration: a CircleCI context named `jayson-pages-preview`, restricted to this project and authorized operators, with encrypted `CLOUDFLARE_API_TOKEN` scoped to Cloudflare Pages Edit for the existing NEN DevOps Cloudflare account. The secret exists **only in the deployment job**, never in QA or the public app. Do not send the token in chat.
 
-Check the returned URL, response, desktop and mobile experience, demo banner, mock order/receipt, and absent real payment fields before sending to the client. Only then record the new version as deployed.
+The deployment is pinned to the preconfigured `jayson-tech-client-preview` Cloudflare Pages project, branch `feat/storefront-demo`, and approved Git SHA. Its post-deployment verifier checks commit/project/branch, Cloudflare successful status, noindex and HTTP 200 at the live URL and archives `.qa-release/verified.json`. Check desktop/mobile behavior and the simulation notice before sharing the new preview.
+
+**As of this change, the new release workflow has not run, and the live Pages preview still serves its prior deployment.** Do not launch the release until the CircleCI context is set up and the user has authorized the release.
 
 Production integration remains out of scope: merchant catalogue, actual inventory and POS, server-side orders, customer authentication, privacy controls, fulfillment, payment gateway and real cash flow require separate approval and implementation.
