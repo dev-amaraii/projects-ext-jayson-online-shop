@@ -227,10 +227,6 @@ export function ShopExperience() {
  const startCheckout=()=>{setCheckoutStep('details');setValidation('');go({name:'checkout'})}
 
  return <div className="j-site">
-  <div className="j-preview-banner"><div className="j-container">
-   <span><Sparkles size={14}/> INTERACTIVE CLIENT PREVIEW</span>
-   <span>Illustrative products & prices · No real orders or payments</span>
-  </div></div>
   <header className="j-header">
    <div className="j-container j-header-inner">
     <button type="button" className="j-menu-toggle" aria-label="Open navigation menu" onClick={()=>setMenuOpen(true)}><Menu size={23}/></button>
