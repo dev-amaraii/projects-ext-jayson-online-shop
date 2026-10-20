@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import './shop-experience.css'
 import {
- ArrowLeft, ArrowRight, Check, CheckCircle2, ChevronRight, Clock3, CreditCard,
- Headphones, Heart, HelpCircle, MapPin, Menu, Minus, Package,
+ ArrowLeft, ArrowRight, Check, CheckCircle2, ChevronRight, CreditCard,
+ Headphones, Heart, HelpCircle, Menu, Minus, Package,
  PackageCheck, Plus, Search, ShieldCheck, ShoppingBag, ShoppingCart,
  Sparkles, Star, Store, Tag, Trash2, Truck, UserRound, WalletCards, X,
 } from 'lucide-react'
