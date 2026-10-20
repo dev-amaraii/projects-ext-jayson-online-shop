@@ -70,3 +70,21 @@ Do **not** omit `--preview-qa`: the default trigger continues to run only build/
 - The original feature mistakenly combined intermediate assertions with later state-changing steps. QA Intel's compiled contracts run steps first, then assertions, so intermediate states require separate scenarios.
 - Follow-up fixes: product-specific accessible add-to-cart labels, explicit post-hydration marker, QA Intel wait for `testid:storefront-hydrated`, separate cart-add/clear and empty-state/recovery scenarios, and negative search assertions to avoid false passes.
 - **Current status: post-fix results unverified.** The new six-scenario smoke suite has not yet been executed in CircleCI. Do not deploy based on the passing previous validation job or partially passing pipeline #5.
+
+## Static Cloudflare Pages client-preview build (2026-10-20)
+
+Cloudflare's standard TanStack Start integration targets Cloudflare Workers for SSR. To meet the customer's **Cloudflare Pages** preview requirement without changing the long-term storefront framework, the repository now includes a static-only Vite entry at `apps/storefront/pages-preview/`. It reuses the same `Home` component and CSS, without introducing any duplicate product catalogue, routing, orders, authentication, or payments.
+
+- Project created under the NEN DevOps Cloudflare account: `jayson-tech-client-preview`.
+- The Pages project has **no Git source connection** and no automatic deployments. The Pages subdomain is reserved but **no deployment has been uploaded**.
+- Run `corepack pnpm --filter @jayson/storefront build:pages` from the repository root. Output: `apps/storefront/dist/pages`.
+- CircleCI `run_preview_qa=true` now builds and browser-tests that exact static Pages artifact, rather than the TanStack development server. Test results from earlier pipelines only cover the prior dev-server variant; the static artifact must pass a fresh run.
+- Once the fresh QA workflow, build, typecheck, and unit tests pass on the **same commit**, deploy manually from the repository root:
+  ```bash
+  corepack pnpm --filter @jayson/storefront build:pages
+  cd apps/storefront
+  npx wrangler pages deploy dist/pages --project-name jayson-tech-client-preview --branch feat/storefront-demo
+  ```
+  Wrangler may require interactive Cloudflare login. Do not paste credentials or tokens into chat.
+- The site must return HTTP 200 at the actual deployed URL, show the demonstration-only notice, expose a working cart, and keep checkout disabled. Review on mobile and desktop before sharing with the client.
+- Do not switch the **production** TanStack Start app to this static entry point. Its purpose is an isolated client preview; reassess hosting when real backend commerce is ready.
