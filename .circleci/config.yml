@@ -55,8 +55,8 @@ jobs:
       - image: cimg/node:24.13-browsers
     resource_class: medium
     environment:
-      RELEASE_AUTHORIZED: << pipeline.parameters.run_preview_release >>
-      EXPECTED_RELEASE_SHA: << pipeline.parameters.release_sha >>
+      RELEASE_AUTHORIZED: "<< pipeline.parameters.run_preview_release >>"
+      EXPECTED_RELEASE_SHA: "<< pipeline.parameters.release_sha >>"
     steps:
       - checkout
       - run:
@@ -134,7 +134,7 @@ jobs:
       - image: cimg/node:24.13
     resource_class: small
     environment:
-      EXPECTED_RELEASE_SHA: << pipeline.parameters.release_sha >>
+      EXPECTED_RELEASE_SHA: "<< pipeline.parameters.release_sha >>"
       CLOUDFLARE_ACCOUNT_ID: "9483d072db9941b23fe0bcd92d76d0d6"
     steps:
       - checkout
@@ -159,7 +159,7 @@ jobs:
             npx --yes wrangler@4.151.2 pages deploy apps/storefront/dist/pages \
               --project-name jayson-tech-client-preview \
               --branch feat/storefront-demo \
-              --commit-hash "$CIRCLE_SHA1" \
+              --commit-hash "$EXPECTED_RELEASE_SHA" \
               --commit-message "Approved mock-commerce client preview"
       - run:
           name: Verify published Cloudflare Pages commit and live preview
