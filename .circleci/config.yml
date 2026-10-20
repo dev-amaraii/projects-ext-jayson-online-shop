@@ -4,6 +4,9 @@ parameters:
   run_validation:
     type: boolean
     default: false
+  run_preview_qa:
+    type: boolean
+    default: false
 
 jobs:
   validate:
@@ -38,11 +41,66 @@ jobs:
           name: Typecheck generated application
           command: corepack pnpm typecheck
 
+  preview-qa:
+    docker:
+      - image: cimg/node:24.13-browsers
+    resource_class: medium
+    steps:
+      - checkout
+      - run:
+          name: Install application dependencies
+          command: corepack pnpm install --frozen-lockfile
+      - run:
+          name: Build storefront
+          command: corepack pnpm build
+      - run:
+          name: Install QA Intel in isolated runner directory
+          command: |
+            mkdir -p /tmp/jayson-qa-runner
+            cd /tmp/jayson-qa-runner
+            npm install --no-audit --no-fund --save-exact @qutecoder/qa-intel@0.2.0
+            npx playwright install chromium
+      - run:
+          name: Start storefront preview server
+          command: |
+            corepack pnpm --filter @jayson/storefront dev --host 127.0.0.1 --port 3000 > /tmp/jayson-storefront.log 2>&1 &
+            echo $! > /tmp/jayson-storefront.pid
+            for i in $(seq 1 60); do
+              if curl --fail --silent http://127.0.0.1:3000/ >/dev/null; then exit 0; fi
+              sleep 2
+            done
+            cat /tmp/jayson-storefront.log
+            exit 1
+      - run:
+          name: Execute QA Intel browser smoke scenarios
+          command: |
+            mkdir -p .qa-results/artifacts
+            /tmp/jayson-qa-runner/node_modules/.bin/qa-runner tests/features/storefront-preview.feature \
+              --base-url http://127.0.0.1:3000 \
+              --results-db .qa-results/results.db \
+              --artifact-dir .qa-results/artifacts | tee .qa-results/qa-intel-output.json
+      - store_artifacts:
+          path: .qa-results
+          destination: qa-intel
+      - store_artifacts:
+          path: /tmp/jayson-storefront.log
+          destination: storefront.log
+
 workflows:
   manually-requested-validation:
     when: << pipeline.parameters.run_validation >>
     jobs:
       - validate:
+          filters:
+            branches:
+              only:
+                - feat/storefront-demo
+                - main
+
+  manually-requested-preview-qa:
+    when: << pipeline.parameters.run_preview_qa >>
+    jobs:
+      - preview-qa:
           filters:
             branches:
               only:
