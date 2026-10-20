@@ -1,6 +1,6 @@
 # Jayson Tech — interactive client preview v2
 
-Status: **implementation committed, QA and deployment pending**.
+Status: **v2 QA passed in CircleCI pipeline #8 (2026-10-20); the revised QA-gated remote release workflow is committed but unverified and not deployed**.
 Branch: `feat/storefront-demo`. The production commerce system is **not** available.
 
 ## Why this preview exists
@@ -53,9 +53,9 @@ corepack pnpm --filter @jayson/storefront build:pages
 
 The on-demand CircleCI QA Intel workflow builds and tests the actual Pages artifact. The `tests/features/storefront-preview.feature` scenarios now cover discovery, filtering, details, wishlist, cart, promotional totals, guest checkout, order confirmation/history, validation, reload persistence and example tracking.
 
-CircleCI also runs `scripts/qa/responsive-preview.mjs` against the same Pages preview server. This uses the Playwright installation supplied by QA Intel's isolated runner and checks the complete sample checkout journey at 320px, 390px and 1280px. It records before/after screenshots, overflow measurements, runtime errors and a structured summary under `.qa-results/responsive/`. The responsive browser gate has **not yet been executed** since it was added.
+CircleCI also runs `scripts/qa/responsive-preview.mjs` against the same Pages preview server. This uses the Playwright installation supplied by QA Intel's isolated runner and checks the complete sample checkout journey at 320px, 390px and 1280px. It records before/after screenshots, overflow measurements, runtime errors and a structured summary under `.qa-results/responsive/`. The responsive browser gate ran successfully in CircleCI pipeline #8; screenshots for 320px, 390px and 1280px were uploaded.
 
-**None of these commands has been executed against this v2 change set in this session.** Do not mark the updated app green based on the earlier pipeline #6.
+**Pipeline #8 passed** the v2 build, unit/type checks, QA Intel and responsive browser tests. The new CircleCI release workflow modifies CI configuration and therefore requires its own successful validation before shipping.
 
 After review and authorization, request a fresh pipeline manually:
 
@@ -78,3 +78,11 @@ Check the actual live URL on desktop and at 390px/320px mobile sizes. Check the 
 ## Production implementation boundaries
 
 This preview intentionally **does not** create actual orders, accept money or provide authenticated accounts. Production work will require client-approved branding, real products/media, pricing/stock policy, sales and tax rules, shipping providers, inventory/POS integration, server-side order and payment lifecycle, customer privacy, authorization, audit and operations. Do not reuse browser-only mock orders or payment selectors as production business logic.
+
+## CI deployment and provenance record
+
+- QA pipeline #8: `69ae77a7-cd37-486b-a671-45c73efa2637`, successful workflow/job. It validated interactive v2 before the latest CI release configuration was committed.
+- Release condition: only CircleCI's `run_preview_release=true` parameter plus an approved full `release_sha` enables `manually-requested-preview-release`. This workflow re-runs QA, gates deployment behind QA success, and fails closed if the checked-out commit differs from that SHA.
+- The deployment job attaches the original QA workspace artifact and uses CircleCI context `jayson-pages-preview` exclusively in the deployment stage. The Cloudflare project is locked to `jayson-tech-client-preview`, its production branch is `feat/storefront-demo`, and the Worker never accepts an arbitrary destination.
+- Post-deployment validation checks the latest Cloudflare Pages deployment's project, branch, exact commit, completed status and live entry page. Failed verification blocks the release outcome but does not automatically roll back uploaded assets; operators must investigate before sharing the URL.
+- No auto-on-push release, no real checkout, and no production commerce launch.
