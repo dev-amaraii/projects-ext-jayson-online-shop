@@ -10,7 +10,11 @@ const allowed = (env.CIRCLE_ALLOWED_BRANCHES || 'feat/storefront-demo,main').spl
 const base = 'https://circleci.com/api/v2';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function fail(message) { console.error(message); process.exit(1); }
-if (!['trigger', 'status'].includes(command)) fail('Usage: node scripts/circleci.mjs trigger [branch] [--execute] | status <pipeline-uuid>');
+if (!['trigger', 'status'].includes(command)) fail('Usage: node scripts/circleci.mjs trigger [branch] [--preview-qa] [--execute] | status <pipeline-uuid>');
+const flags = process.argv.slice(4);
+if (command === 'trigger' && flags.some(flag => !['--preview-qa', '--execute'].includes(flag))) fail('Unknown trigger flag; use --preview-qa and/or --execute');
+if (command === 'status' && flags.length) fail('Status accepts only a pipeline UUID');
+const previewQa = flags.includes('--preview-qa');
 if (!slug || !/^(circleci|gh|github)\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+$/.test(slug)) fail('Set CIRCLE_PROJECT_SLUG from CircleCI Project Settings > Overview');
 if (command === 'trigger') {
   if (!allowed.includes(branch)) fail('Branch not allowed: ' + branch);
@@ -18,7 +22,7 @@ if (command === 'trigger') {
 }
 if (command === 'status' && !uuid.test(branch)) fail('Provide a valid pipeline UUID');
 const path = command === 'trigger' ? '/project/' + slug + '/pipeline/run' : '/pipeline/' + branch;
-const body = command === 'trigger' ? { definition_id: definitionId, config: { branch }, checkout: { branch }, parameters: { run_validation: true } } : undefined;
+const body = command === 'trigger' ? { definition_id: definitionId, config: { branch }, checkout: { branch }, parameters: previewQa ? { run_preview_qa: true } : { run_validation: true } } : undefined;
 if (command === 'trigger' && !process.argv.includes('--execute')) {
   console.log(JSON.stringify({ dry_run: true, method: 'POST', path, body }, null, 2));
   console.log('No pipeline started. Add --execute to authorize one run.');
