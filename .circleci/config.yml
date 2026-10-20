@@ -94,6 +94,9 @@ jobs:
               --base-url http://127.0.0.1:3000 \
               --results-db .qa-results/results.db \
               --artifact-dir .qa-results/artifacts | tee .qa-results/qa-intel-output.json
+      - run:
+          name: Responsive mock checkout tests at 320px, 390px, and desktop
+          command: node scripts/qa/responsive-preview.mjs
       - store_artifacts:
           path: .qa-results
           destination: qa-intel
