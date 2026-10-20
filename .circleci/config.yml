@@ -201,7 +201,7 @@ workflows:
               only:
                 - feat/storefront-demo
       - deploy-preview:
-          context: jayson-pages-preview
+          context: jayson-pages-previe
           requires:
             - preview-qa
           filters:
