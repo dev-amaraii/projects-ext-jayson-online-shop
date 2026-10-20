@@ -42,3 +42,21 @@ Cloudflare Pages is an approved hosting target for the client preview **after va
 - **Not yet verified:** CircleCI configuration acceptance, QA Intel package installation, Playwright browser availability, Gherkin compilation, actual browser execution, all P0/P1 acceptance cases, and Cloudflare Pages compatibility. These must not be reported as passed.
 - The smoke file covers only an initial subset of the 13 acceptance scenarios; expand after the first real run and fix failures using captured evidence.
 - Manual pipeline triggering requires explicit approval and CircleCI access. Do not configure automatic triggers.
+
+## How to request the browser QA workflow
+
+First pull the latest feature-branch commits and inspect a dry run:
+
+```bash
+git checkout feat/storefront-demo
+git pull --ff-only
+node scripts/circleci.mjs trigger feat/storefront-demo --preview-qa
+```
+
+The dry-run JSON must contain `"run_preview_qa": true`. Only then execute the approved pipeline:
+
+```bash
+node scripts/circleci.mjs trigger feat/storefront-demo --preview-qa --execute
+```
+
+Do **not** omit `--preview-qa`: the default trigger continues to run only build/unit/typecheck validation. After the run, inspect `manually-requested-preview-qa`, and download the QA Intel JSON/SQLite/artifacts. The browser suite requires a running storefront server; CircleCI runs a preview development server for the test job, not a public deployment. Do not record the QA gate as passed until the workflow completes successfully.
