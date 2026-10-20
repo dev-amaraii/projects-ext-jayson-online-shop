@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import './shop-experience.css'
 import {
  ArrowLeft, ArrowRight, Check, CheckCircle2, ChevronRight, Clock3, CreditCard,
  Headphones, Heart, HelpCircle, MapPin, Menu, Minus, Package,
@@ -63,7 +64,7 @@ function ProductCard({product,saved,onOpen,onAdd,onSave}:{
 }
 
 function SectionHeading({eyebrow,title,action,children}:{
- eyebrow:string; title:string; action?:()=>void; children?:React.ReactNode;
+ eyebrow:string; title:string; action?:()=>void; children?:ReactNode;
 }) {
  return <div className="j-section-heading"><div><span className="j-kicker">{eyebrow}</span><h2>{title}</h2></div>
   {action&&<button className="j-text-action" type="button" onClick={action}>{children||'View all'} <ArrowRight size={16}/></button>}</div>
@@ -377,7 +378,7 @@ export function ShopExperience() {
       <div className="j-review-data"><div><span>Example contact</span><strong>{contact.fullName}</strong><small>Contact details are not saved</small></div>
        <div><span>Delivery</span><strong>{deliveryMode==='pickup'?'Store pickup':deliveryMode==='express'?'Express delivery':'Standard delivery'}</strong><small>{destination} (illustrative)</small></div>
        <div><span>Payment</span><strong>{paymentMethod==='card'?'Mock card':paymentMethod==='delivery'?'Mock pay on delivery':'Mock bank transfer'}</strong><small>No payment will occur</small></div></div>
-      <CartRows items={items} onAdjust={()=>setCheckoutStep('details')} onRemove={()=>setCheckoutStep('details')}/>
+      <CartRows items={items} onAdjust={changeItem} onRemove={id=>change(id,-(items[id]||0))}/>
       <button type="button" className="j-primary j-full" onClick={placeDemoOrder}><CheckCircle2 size={19}/> Place demo order (no payment)</button>
       <button className="j-text-action j-continue" onClick={()=>setCheckoutStep('details')}><ArrowLeft size={16}/> Edit details</button>
      </div>}
