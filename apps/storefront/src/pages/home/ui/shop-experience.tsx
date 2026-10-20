@@ -317,7 +317,7 @@ export function ShopExperience() {
        <button type="button" aria-label="Decrease product quantity" disabled={quantity<=1} onClick={()=>setQuantity(q=>Math.max(1,q-1))}><Minus size={18}/></button>
        <span>{quantity}</span>
        <button type="button" aria-label="Increase product quantity" disabled={quantity>=99} onClick={()=>setQuantity(q=>Math.min(99,q+1))}><Plus size={18}/></button></div>
-       <button className="j-primary j-product-buy" type="button" onClick={()=>addItem(detail.id,quantity)}><ShoppingCart size={18}/> Add to Cart</button>
+       <button className="j-primary j-product-buy" type="button" aria-label={'Add '+detail.name+' x '+quantity+' to cart'} onClick={()=>addItem(detail.id,quantity)}><ShoppingCart size={18}/> Add to Cart</button>
        <button className={'j-detail-save'+(wishlist.includes(detail.id)?' j-saved':'')} type="button" onClick={()=>toggleSaved(detail.id)} aria-label={wishlist.includes(detail.id)?'Remove from wishlist':'Save to wishlist'}><Heart size={20} fill={wishlist.includes(detail.id)?'currentColor':'none'}/></button></div>
       <div className="j-detail-disclaimer"><ShieldCheck size={19}/> This item is for demonstration. Nothing can be purchased yet.</div>
      </div>
@@ -423,7 +423,7 @@ export function ShopExperience() {
     <div className="j-page-top"><span className="j-kicker">EXAMPLE CUSTOMER HUB</span><h1>My account preview</h1><p>This is how a customer profile could look. Real sign-in and accounts are not active.</p></div>
     <div className="j-account-layout"><section className="j-panel j-profile"><div className="j-avatar"><UserRound size={40}/></div><div><span className="j-demo-chip">DEMO PROFILE</span><h2>Demo Customer</h2><p>demo@example.com</p><p className="j-fine">Sample identity · Not an authenticated account</p></div></section>
      <section className="j-account-actions">
-      <button className="j-account-tile" onClick={()=>go({name:'orders'})}><Package size={26}/><strong>Orders</strong><span>{orders.length} example order(s)</span><ArrowRight size={20}/></button>
+      <button className="j-account-tile" data-testid="account-orders" onClick={()=>go({name:'orders'})}><Package size={26}/><strong>Orders</strong><span>{orders.length} example order(s)</span><ArrowRight size={20}/></button>
       <button className="j-account-tile" onClick={()=>go({name:'wishlist'})}><Heart size={26}/><strong>Saved items</strong><span>{wishlist.length} saved product(s)</span><ArrowRight size={20}/></button>
       <button className="j-account-tile" onClick={()=>go({name:'help'})}><HelpCircle size={26}/><strong>Help centre</strong><span>FAQs and preview information</span><ArrowRight size={20}/></button>
      </section></div>
