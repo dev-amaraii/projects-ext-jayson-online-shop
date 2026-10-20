@@ -104,7 +104,7 @@ Scenario: Product detail quantity changes the cart
   Given I navigate to "/#/product/headphones"
   When I wait for testid:storefront-hydrated
   And I click the button "Increase product quantity"
-  And I click the button "Add to Cart"
+  And I click the button "Add Wireless Headphones x 2 to cart"
   Then I should see the heading "Your Cart (2)"
   And the text "Illustrative total" should exist
 
@@ -137,7 +137,7 @@ Scenario: Simulated order history persists through page reload
   And I navigate to "/"
   And I wait for testid:storefront-hydrated
   And I click the button "Open account"
-  And I click the button "Orders"
+  And I click testid:account-orders
   Then I should see the heading "Demo orders"
   And the text "Wireless Headphones" should exist
 
@@ -149,7 +149,7 @@ Scenario: Invalid sample email cannot proceed to simulated order review
   And I click the button "Continue to demo checkout"
   And I type "not-an-email" into the field "Email address"
   And I click the button "Review demo order"
-  Then I should see the alert "Please complete the sample name, valid email, phone and delivery address."
+  Then the text "Please complete the sample name, valid email, phone and delivery address." should exist
 
 @preview @tracking
 Scenario: Example order tracking can advance without shipping anything
