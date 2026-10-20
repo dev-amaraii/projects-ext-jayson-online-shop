@@ -1,6 +1,6 @@
 # Jayson Tech — client preview QA Intel acceptance contract
 
-Status: **proposed acceptance contract; execution pending**. The external QA Intel runner has not been connected to this repository. Do not report this document as a successful QA Intel run.
+Status: **proposed acceptance contract; execution pending**. The QA Intel browser job is configured in CircleCI but has not yet been executed or verified. Do not report this document as a successful QA Intel run.
 
 ## Release intent
 Publish a shareable **client preview**, not a production commerce application. Real checkout, account creation, inventory, delivery quotes and payments are out of scope. Do not collect money or claim that placeholder prices/stock are real.
@@ -33,3 +33,12 @@ Run `corepack pnpm install --frozen-lockfile`, `corepack pnpm build`, `corepack 
 
 ## Cloudflare Pages preview
 Cloudflare Pages is an approved hosting target for the client preview **after validation**. Confirm the correct TanStack Start SSR/static adapter and Cloudflare build configuration before deployment; do not assume a Vite build output is directly Pages-compatible. Keep production domains and real checkout disabled. Record the resulting preview URL only after deployment succeeds.
+
+## Implemented QA Intel wiring (2026-10-20)
+- Source: [CodieCoder/qa-intel](https://github.com/CodieCoder/qa-intel), npm package `@qutecoder/qa-intel` version 0.2.0 (repository manifest). Package registry installation remains unverified.
+- Gherkin smoke scenarios: `tests/features/storefront-preview.feature`.
+- On-demand CircleCI workflow: `manually-requested-preview-qa`, parameter `run_preview_qa=true` on `feat/storefront-demo` or `main`.
+- Isolated QA runner install avoids modifying the application's pnpm lockfile; QA artifacts are stored under `.qa-results` in CircleCI.
+- **Not yet verified:** CircleCI configuration acceptance, QA Intel package installation, Playwright browser availability, Gherkin compilation, actual browser execution, all P0/P1 acceptance cases, and Cloudflare Pages compatibility. These must not be reported as passed.
+- The smoke file covers only an initial subset of the 13 acceptance scenarios; expand after the first real run and fix failures using captured evidence.
+- Manual pipeline triggering requires explicit approval and CircleCI access. Do not configure automatic triggers.
