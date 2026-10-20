@@ -66,14 +66,12 @@ node scripts/circleci.mjs trigger feat/storefront-demo --preview-qa
 node scripts/circleci.mjs trigger feat/storefront-demo --preview-qa --execute
 ```
 
-If it passes, build and manually deploy from inside `apps/storefront`:
+The separate release workflow uses a *pinned full commit SHA* and publishes the exact artifact tested by QA; there is no longer a requirement to run Wrangler on a local Mac. The preview site stays unchanged unless a separately authorized release pipeline passes all gates.
 
-```bash
-corepack pnpm build:pages
-npx wrangler pages deploy dist/pages --project-name jayson-tech-client-preview --branch feat/storefront-demo
-```
+A one-time CircleCI context named `jayson-pages-preview` must be created and restricted to the Jayson project and authorized operators. Store the encrypted `CLOUDFLARE_API_TOKEN` there, using a least-privilege Cloudflare API token with Pages Edit permission on the NEN DevOps account. Do not paste the token into chat or GitHub. The QA job has no access to that context; only the deployment job does.
 
-Check the actual live URL on desktop and at 390px/320px mobile sizes. Check the console and test direct-link refresh, demo order persistence, blocked-storage fallback and reduced motion. The live Cloudflare Pages deployment continues to serve the earlier version until a new deploy is explicitly made.
+The deployment job checks the pinned commit, project/branch, built asset and noindex header, uploads the QA workspace artifact, checks Cloudflare's deployment metadata and HTTP response, and stores a verification record. The client preview must still be manually reviewed on mobile and desktop before sharing.
+
 
 ## Production implementation boundaries
 
