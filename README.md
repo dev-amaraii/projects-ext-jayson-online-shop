@@ -32,7 +32,7 @@ The existing TanStack Start application and the static Pages preview share the s
 
 For feature contracts, browser QA and release instructions see [Interactive Preview](docs/storefront/INTERACTIVE-PREVIEW.md) and [Client Preview Acceptance](docs/qa/CLIENT-PREVIEW-ACCEPTANCE.md).
 
-**QA status:** The updated experience has not yet been revalidated in CircleCI. The previously deployed Pages URL serves an earlier preview until a separately approved manual build and deployment.
+**QA status:** Interactive v2 passed CircleCI pipeline #8 (QA Intel and mobile/desktop browser checks). The Pages site still serves the earlier version. A new, separate QA-gated release workflow is committed but not yet run and requires a restricted CircleCI deployment context.
 
 ## Planned production system
 
