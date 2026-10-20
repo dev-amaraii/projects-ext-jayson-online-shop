@@ -53,6 +53,8 @@ corepack pnpm --filter @jayson/storefront build:pages
 
 The on-demand CircleCI QA Intel workflow builds and tests the actual Pages artifact. The `tests/features/storefront-preview.feature` scenarios now cover discovery, filtering, details, wishlist, cart, promotional totals, guest checkout, order confirmation/history, validation, reload persistence and example tracking.
 
+CircleCI also runs `scripts/qa/responsive-preview.mjs` against the same Pages preview server. This uses the Playwright installation supplied by QA Intel's isolated runner and checks the complete sample checkout journey at 320px, 390px and 1280px. It records before/after screenshots, overflow measurements, runtime errors and a structured summary under `.qa-results/responsive/`. The responsive browser gate has **not yet been executed** since it was added.
+
 **None of these commands has been executed against this v2 change set in this session.** Do not mark the updated app green based on the earlier pipeline #6.
 
 After review and authorization, request a fresh pipeline manually:
