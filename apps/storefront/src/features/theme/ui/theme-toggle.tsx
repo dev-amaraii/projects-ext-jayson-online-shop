@@ -16,7 +16,8 @@ export function ThemeToggle() {
  const { preference, setPreference } = useTheme()
  const [open, setOpen] = useState(false)
  useEffect(() => {
-  const saved = window.localStorage.getItem('jayson-theme')
+  let saved: string | null = null
+  try { saved = window.localStorage.getItem('jayson-theme') } catch { /* Privacy settings may block localStorage. */ }
   const initial = choices.some(c => c.value === saved) ? saved as ThemePreference : 'system'
   setPreference(initial)
   applyTheme(initial)
@@ -30,7 +31,7 @@ export function ThemeToggle() {
  const select = (value: ThemePreference) => {
   setPreference(value)
   applyTheme(value)
-  window.localStorage.setItem('jayson-theme', value)
+  try { window.localStorage.setItem('jayson-theme', value) } catch { /* Appearance still works in memory. */ }
   setOpen(false)
  }
  const active = choices.find(c => c.value === preference) ?? choices[2]
