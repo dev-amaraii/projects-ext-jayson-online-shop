@@ -1,90 +1,68 @@
-# Jayson Tech — client preview QA Intel acceptance contract
+# Jayson Tech — QA Intel client-preview acceptance contract
 
-Status: **proposed acceptance contract; execution pending**. The QA Intel browser job is configured in CircleCI but has not yet been executed or verified. Do not report this document as a successful QA Intel run.
+Status (2026-10-20): **v1 client preview deployed; v2 interactive flow implemented in branch; updated QA not yet run**.
+
+The Cloudflare Pages project `jayson-tech-client-preview` was created and a prior, more limited frontend preview was deployed successfully. CircleCI pipeline #6 passed the preceding QA Intel smoke suite against the earlier development-server configuration. **Neither result validates the new v2 flow.** Do not announce v2 as ready until the new tests pass and its static artifact is deployed.
 
 ## Release intent
-Publish a shareable **client preview**, not a production commerce application. Real checkout, account creation, inventory, delivery quotes and payments are out of scope. Do not collect money or claim that placeholder prices/stock are real.
 
-## Automated validation (CircleCI, on demand)
-Run `corepack pnpm install --frozen-lockfile`, `corepack pnpm build`, `corepack pnpm test`, and `corepack pnpm typecheck` on the exact proposed preview commit. Fail preview promotion on any failure. CircleCI is manually requested using `run_validation=true`; avoid per-push credit consumption.
+Give the client a genuinely navigable full shopping **simulation**, not a live commerce launch. Users can interact with product discovery, saved items, cart, voucher, example delivery/payment options, guest checkout form, mock confirmation, example tracking and browser-only order history. The interface must clearly disclose that data, prices, stock, accounts, delivery and payment are fictional.
 
-## QA Intel test scenarios
-| ID | Scenario | Expected result | Priority |
+The preview **must not** create real orders, submit contacts to a backend, collect card/bank credentials, process payments, or imply that an example tracking status is an actual shipment.
+
+## Acceptance scenarios
+
+| ID | Journey | Required result | Priority |
 | --- | --- | --- | --- |
-| QA-01 | Desktop initial load at 1440px | Header, hero, categories, catalogue and preview notice visible; no horizontal overflow | P0 |
-| QA-02 | Mobile initial load at 390px and 320px | Search, navigation, cards and bottom bar usable; no horizontal overflow | P0 |
-| QA-03 | Search name, description and category, mixed case and whitespace | Matching items only; clearing restores catalogue | P0 |
-| QA-04 | Search nonexistent term | Helpful empty state and working Clear filters action | P1 |
-| QA-05 | Category filter and reset | Correct subset and all-products reset | P0 |
-| QA-06 | Add item, increase/decrease quantity, clear cart | Count and subtotal reflect quantity; no negative quantity | P0 |
-| QA-07 | Reload page with populated cart | Valid quantities restored from localStorage after hydration | P0 |
-| QA-08 | Corrupted localStorage and blocked storage | Page renders and cart remains usable without crashing | P0 |
-| QA-09 | Open and close product detail, cart, mobile menu | Controls work; labels understandable to assistive technology | P1 |
-| QA-10 | Checkout and account | Checkout disabled, no real payment, account clearly marked unavailable | P0 |
-| QA-11 | Light/dark/system theme | Readable surfaces and controls in both themes, persists on reload | P1 |
-| QA-12 | Browser console and network | No uncaught runtime errors or broken essential assets | P0 |
-| QA-13 | Preview security | No credentials, tokens, payment forms or customer personal-data collection | P0 |
+| QA-01 | Desktop initial load | Hero, navigation, category tiles, product cards and demo banner render | P0 |
+| QA-02 | Mobile widths 320/390 | No horizontal overflow; menu, search, sticky bottom navigation and cards usable | P0 |
+| QA-03 | Search/category | Name/description/category search, filter and clear action correctly narrow/reset products | P0 |
+| QA-04 | Sorting | Price and name ordering behave deterministically | P1 |
+| QA-05 | Product details | Direct links and refresh work; product info, quantity and related products visible | P0 |
+| QA-06 | Wishlist | Add/remove, aria labels and reload persistence work | P1 |
+| QA-07 | Cart | Add/increase/decrease/remove/clear, totals and persistence work | P0 |
+| QA-08 | Mock promotion | `JAYSON10` gives 10% up to ₦50,000, bad codes give 0% | P0 |
+| QA-09 | Checkout contact | Sample contact form validates, users warned not to enter personal data | P0 |
+| QA-10 | Delivery calculation | Pickup free, city and express fee rules match documented demo rates | P0 |
+| QA-11 | Payment selection | Mock card/transfer/delivery UI never requests credentials or charges money | P0 |
+| QA-12 | Confirmation | Creates a browser-only demo order and clears the cart | P0 |
+| QA-13 | Orders/history | Mock reference, timestamp, items and totals persist safely on reload | P0 |
+| QA-14 | Tracking | User advances example statuses only; no live delivery claim | P1 |
+| QA-15 | Account/help | Profile explicitly fake; FAQs and navigation accessible | P1 |
+| QA-16 | Browser errors | No uncaught errors, broken core assets, secrets, API submissions or real transactions | P0 |
+| QA-17 | Resilience | Invalid IDs, corrupted localStorage, unavailable storage and bad checkout fields don't crash app | P0 |
+| QA-18 | Motion/theme | Dark/light/system legible, reduced-motion honored, controls keyboard accessible | P1 |
 
-## QA Intel integration boundary
-- If the existing NEN QA Intel runner is accessible, import/translate these cases into its **actual schema** after inspecting that repository. Do not invent an integration or claim agent execution.
-- Preserve evidence per scenario: commit SHA, URL/build, viewport, screenshot or log, pass/fail, and defect reference.
-- Promotion gate: all P0 scenarios pass, no blocking defects, build/test/typecheck pass. P1 defects must be disclosed to the client if unresolved.
-- Never deploy a production site by interpreting a preview pass as commerce readiness.
+## Checks and evidence
 
-## Cloudflare Pages preview
-Cloudflare Pages is an approved hosting target for the client preview **after validation**. Confirm the correct TanStack Start SSR/static adapter and Cloudflare build configuration before deployment; do not assume a Vite build output is directly Pages-compatible. Keep production domains and real checkout disabled. Record the resulting preview URL only after deployment succeeds.
+- From repo root: `corepack pnpm build && corepack pnpm test && corepack pnpm typecheck && corepack pnpm --filter @jayson/storefront build:pages`.
+- On-demand CircleCI workflow: `manually-requested-preview-qa` with parameter `run_preview_qa=true`. It validates the static Pages build, unit tests, typecheck and QA Intel Gherkin scenarios.
+- Gherkin: `tests/features/storefront-preview.feature` (17 end-to-end scenarios including checkout, order history, persistence and errors).
+- Responsive Playwright: `scripts/qa/responsive-preview.mjs`, 320px/390px/1280px, screenshots plus no-overflow/checkout assertions.
+- Capture QA Intel JSON, SQLite history, desktop/mobile screenshots and browser/console errors. All P0 must pass. P1 issues must be reviewed and disclosed.
 
-## Implemented QA Intel wiring (2026-10-20)
-- Source: [CodieCoder/qa-intel](https://github.com/CodieCoder/qa-intel), npm package `@qutecoder/qa-intel` version 0.2.0 (repository manifest). Package registry installation remains unverified.
-- Gherkin smoke scenarios: `tests/features/storefront-preview.feature`.
-- On-demand CircleCI workflow: `manually-requested-preview-qa`, parameter `run_preview_qa=true` on `feat/storefront-demo` or `main`.
-- Isolated QA runner install avoids modifying the application's pnpm lockfile; QA artifacts are stored under `.qa-results` in CircleCI.
-- **Not yet verified:** CircleCI configuration acceptance, QA Intel package installation, Playwright browser availability, Gherkin compilation, actual browser execution, all P0/P1 acceptance cases, and Cloudflare Pages compatibility. These must not be reported as passed.
-- The smoke file covers only an initial subset of the 13 acceptance scenarios; expand after the first real run and fix failures using captured evidence.
-- Manual pipeline triggering requires explicit approval and CircleCI access. Do not configure automatic triggers.
-
-## How to request the browser QA workflow
-
-First pull the latest feature-branch commits and inspect a dry run:
+## Manual trigger — no automatic CI credits
 
 ```bash
 git checkout feat/storefront-demo
 git pull --ff-only
 node scripts/circleci.mjs trigger feat/storefront-demo --preview-qa
-```
-
-The dry-run JSON must contain `"run_preview_qa": true`. Only then execute the approved pipeline:
-
-```bash
 node scripts/circleci.mjs trigger feat/storefront-demo --preview-qa --execute
 ```
 
-Do **not** omit `--preview-qa`: the default trigger continues to run only build/unit/typecheck validation. After the run, inspect `manually-requested-preview-qa`, and download the QA Intel JSON/SQLite/artifacts. The browser suite requires a running storefront server; CircleCI runs a preview development server for the test job, not a public deployment. Do not record the QA gate as passed until the workflow completes successfully.
+The first trigger command is **dry-run only**. Confirm it shows `"run_preview_qa": true`. The second launches the pipeline. Do not substitute the standard validation trigger. The CI workflow must remain explicitly requested, not automatically run per Git push.
 
-## First QA Intel execution — CircleCI pipeline #5 (2026-10-20)
-- Source commit: `3287dc7` on `feat/storefront-demo`.
-- QA Intel package installation, application build, local server startup and runner invocation **succeeded**.
-- QA Intel summary: **four contracts, two passed, two failed**.
-- Passed: product discovery/search scenario (did not exclude unrelated products), category browsing.
-- Failed: cart action selected the ambiguous `Add to Cart` accessible name (12 matches); empty-search recovery timed out waiting for `Clear filters` (0 matches).
-- The original feature mistakenly combined intermediate assertions with later state-changing steps. QA Intel's compiled contracts run steps first, then assertions, so intermediate states require separate scenarios.
-- Follow-up fixes: product-specific accessible add-to-cart labels, explicit post-hydration marker, QA Intel wait for `testid:storefront-hydrated`, separate cart-add/clear and empty-state/recovery scenarios, and negative search assertions to avoid false passes.
-- **Current status: post-fix results unverified.** The new six-scenario smoke suite has not yet been executed in CircleCI. Do not deploy based on the passing previous validation job or partially passing pipeline #5.
+## Pages rollout only after validation
 
-## Static Cloudflare Pages client-preview build (2026-10-20)
+Pages project: `jayson-tech-client-preview`; manual deployment, Git connection disabled.
 
-Cloudflare's standard TanStack Start integration targets Cloudflare Workers for SSR. To meet the customer's **Cloudflare Pages** preview requirement without changing the long-term storefront framework, the repository now includes a static-only Vite entry at `apps/storefront/pages-preview/`. It reuses the same `Home` component and CSS, without introducing any duplicate product catalogue, routing, orders, authentication, or payments.
+From **inside** `apps/storefront` after updating and validating the exact branch:
 
-- Project created under the NEN DevOps Cloudflare account: `jayson-tech-client-preview`.
-- The Pages project has **no Git source connection** and no automatic deployments. The Pages subdomain is reserved but **no deployment has been uploaded**.
-- Run `corepack pnpm --filter @jayson/storefront build:pages` from the repository root. Output: `apps/storefront/dist/pages`.
-- CircleCI `run_preview_qa=true` now builds and browser-tests that exact static Pages artifact, rather than the TanStack development server. Test results from earlier pipelines only cover the prior dev-server variant; the static artifact must pass a fresh run.
-- Once the fresh QA workflow, build, typecheck, and unit tests pass on the **same commit**, deploy manually from the repository root:
-  ```bash
-  corepack pnpm --filter @jayson/storefront build:pages
-  cd apps/storefront
-  npx wrangler pages deploy dist/pages --project-name jayson-tech-client-preview --branch feat/storefront-demo
-  ```
-  Wrangler may require interactive Cloudflare login. Do not paste credentials or tokens into chat.
-- The site must return HTTP 200 at the actual deployed URL, show the demonstration-only notice, expose a working cart, and keep checkout disabled. Review on mobile and desktop before sharing with the client.
-- Do not switch the **production** TanStack Start app to this static entry point. Its purpose is an isolated client preview; reassess hosting when real backend commerce is ready.
+```bash
+corepack pnpm build:pages
+npx wrangler pages deploy dist/pages --project-name jayson-tech-client-preview --branch feat/storefront-demo
+```
+
+Check the returned URL, response, desktop and mobile experience, demo banner, mock order/receipt, and absent real payment fields before sending to the client. Only then record the new version as deployed.
+
+Production integration remains out of scope: merchant catalogue, actual inventory and POS, server-side orders, customer authentication, privacy controls, fulfillment, payment gateway and real cash flow require separate approval and implementation.
