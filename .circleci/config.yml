@@ -7,6 +7,12 @@ parameters:
   run_preview_qa:
     type: boolean
     default: false
+  run_preview_release:
+    type: boolean
+    default: false
+  release_sha:
+    type: string
+    default: ""
 
 jobs:
   validate:
@@ -48,8 +54,21 @@ jobs:
     docker:
       - image: cimg/node:24.13-browsers
     resource_class: medium
+    environment:
+      RELEASE_AUTHORIZED: << pipeline.parameters.run_preview_release >>
+      EXPECTED_RELEASE_SHA: << pipeline.parameters.release_sha >>
     steps:
       - checkout
+      - run:
+          name: Verify release revision when release was explicitly requested
+          command: |
+            set -eu
+            if [ "$RELEASE_AUTHORIZED" = "true" ]; then
+              test "$CIRCLE_BRANCH" = "feat/storefront-demo"
+              test -n "$EXPECTED_RELEASE_SHA"
+              test "$(git rev-parse HEAD)" = "$EXPECTED_RELEASE_SHA"
+              echo "QA running against explicitly approved release revision"
+            fi
       - run:
           name: Install application dependencies
           command: corepack pnpm install --frozen-lockfile
@@ -97,12 +116,57 @@ jobs:
       - run:
           name: Responsive mock checkout tests at 320px, 390px, and desktop
           command: node scripts/qa/responsive-preview.mjs
+      # The Pages artifact is promoted WITHOUT rebuilding only when every
+      # preceding build, unit/type, QA Intel and responsive-browser step passed.
+      - persist_to_workspace:
+          root: .
+          paths:
+            - apps/storefront/dist/pages
       - store_artifacts:
           path: .qa-results
           destination: qa-intel
       - store_artifacts:
           path: /tmp/jayson-storefront.log
           destination: storefront.log
+
+  deploy-preview:
+    docker:
+      - image: cimg/node:24.13
+    resource_class: small
+    environment:
+      EXPECTED_RELEASE_SHA: << pipeline.parameters.release_sha >>
+      CLOUDFLARE_ACCOUNT_ID: "9483d072db9941b23fe0bcd92d76d0d6"
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Verify approved revision, target and exact QA artifact
+          command: |
+            set -eu
+            test "$CIRCLE_BRANCH" = "feat/storefront-demo"
+            test -n "$EXPECTED_RELEASE_SHA"
+            test "$(git rev-parse HEAD)" = "$EXPECTED_RELEASE_SHA"
+            test -n "${CLOUDFLARE_API_TOKEN:-}" || { echo "Cloudflare Pages token missing from restricted CircleCI context"; exit 1; }
+            test -f apps/storefront/dist/pages/index.html
+            grep -qi "Client Preview" apps/storefront/dist/pages/index.html
+            grep -qi "noindex" apps/storefront/dist/pages/index.html
+            test -f apps/storefront/dist/pages/_headers
+            echo "Release target and unchanged QA artifact verified"
+      - run:
+          name: Deploy QA-approved artifact to the isolated client preview
+          command: |
+            npx --yes wrangler@4.151.2 pages deploy apps/storefront/dist/pages \
+              --project-name jayson-tech-client-preview \
+              --branch feat/storefront-demo \
+              --commit-hash "$CIRCLE_SHA1" \
+              --commit-message "Approved mock-commerce client preview"
+      - run:
+          name: Verify published Cloudflare Pages commit and live preview
+          command: node scripts/verify-pages-release.mjs
+      - store_artifacts:
+          path: .qa-release
+          destination: preview-release
 
 workflows:
   manually-requested-validation:
@@ -124,3 +188,23 @@ workflows:
               only:
                 - feat/storefront-demo
                 - main
+
+  # Separate explicit release request. Re-runs all QA against the *same*
+  # Git revision and promotes the workspace artifact only if preview-qa passes.
+  # CLOUDFLARE_API_TOKEN exists solely in the restricted deployment context.
+  manually-requested-preview-release:
+    when: << pipeline.parameters.run_preview_release >>
+    jobs:
+      - preview-qa:
+          filters:
+            branches:
+              only:
+                - feat/storefront-demo
+      - deploy-preview:
+          context: jayson-pages-preview
+          requires:
+            - preview-qa
+          filters:
+            branches:
+              only:
+                - feat/storefront-demo
