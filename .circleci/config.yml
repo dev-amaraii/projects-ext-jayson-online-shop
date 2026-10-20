@@ -60,6 +60,12 @@ jobs:
           name: Build exact Cloudflare Pages client-preview artifact
           command: corepack pnpm --filter @jayson/storefront build:pages
       - run:
+          name: Run storefront unit tests
+          command: corepack pnpm test
+      - run:
+          name: Typecheck storefront and static Pages entry
+          command: corepack pnpm typecheck
+      - run:
           name: Install QA Intel in isolated runner directory
           command: |
             mkdir -p /tmp/jayson-qa-runner
