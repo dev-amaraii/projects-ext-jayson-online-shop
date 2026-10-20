@@ -16,3 +16,10 @@ export const products:Product[]=[
 ]
 export const categories: {name:Category;emoji:string}[]=[{name:'Phones',emoji:'📱'},{name:'Audio',emoji:'🎧'},{name:'Accessories',emoji:'⌚'},{name:'Chargers',emoji:'🔌'},{name:'Power',emoji:'🔋'},{name:'Cases',emoji:'📱'}]
 export const naira=(n:number)=>'₦'+n.toLocaleString('en-NG')
+
+/** Shared, side-effect-free product filtering for the storefront and QA tests. */
+export function filterProducts(category:Category|'All',query:string):Product[]{
+ const term=query.trim().toLocaleLowerCase()
+ return products.filter(product=>(category==='All'||product.category===category)&&
+  (product.name+' '+product.description+' '+product.category).toLocaleLowerCase().includes(term))
+}
