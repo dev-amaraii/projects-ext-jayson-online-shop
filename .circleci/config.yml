@@ -1,0 +1,210 @@
+version: 2.1
+
+parameters:
+  run_validation:
+    type: boolean
+    default: false
+  run_preview_qa:
+    type: boolean
+    default: false
+  run_preview_release:
+    type: boolean
+    default: false
+  release_sha:
+    type: string
+    default: ""
+
+jobs:
+  validate:
+    docker:
+      - image: cimg/node:24.13
+    resource_class: small
+    steps:
+      - checkout
+      - run:
+          name: Verify pinned pnpm via Corepack
+          command: |
+            corepack pnpm --version
+      - restore_cache:
+          keys:
+            - pnpm-v1-{{ checksum "pnpm-lock.yaml" }}
+      - run:
+          name: Install dependencies
+          command: corepack pnpm install --frozen-lockfile
+      - save_cache:
+          key: pnpm-v1-{{ checksum "pnpm-lock.yaml" }}
+          paths:
+            - ~/.local/share/pnpm/store
+      # TanStack Start generates src/routeTree.gen.ts during Vite build.
+      # On a fresh CI checkout it does not exist yet, so build before tsc.
+      - run:
+          name: Production build and generate TanStack routes
+          command: corepack pnpm build
+      - run:
+          name: Run storefront unit tests
+          command: corepack pnpm test
+      - run:
+          name: Typecheck generated application
+          command: corepack pnpm typecheck
+      - run:
+          name: Build static Cloudflare Pages client preview
+          command: corepack pnpm --filter @jayson/storefront build:pages
+
+  preview-qa:
+    docker:
+      - image: cimg/node:24.13-browsers
+    resource_class: medium
+    environment:
+      RELEASE_AUTHORIZED: "<< pipeline.parameters.run_preview_release >>"
+      EXPECTED_RELEASE_SHA: "<< pipeline.parameters.release_sha >>"
+    steps:
+      - checkout
+      - run:
+          name: Verify release revision when release was explicitly requested
+          command: |
+            set -eu
+            if [ "$RELEASE_AUTHORIZED" = "true" ]; then
+              test "$CIRCLE_BRANCH" = "feat/storefront-demo"
+              test -n "$EXPECTED_RELEASE_SHA"
+              test "$(git rev-parse HEAD)" = "$EXPECTED_RELEASE_SHA"
+              echo "QA running against explicitly approved release revision"
+            fi
+      - run:
+          name: Install application dependencies
+          command: corepack pnpm install --frozen-lockfile
+      - run:
+          name: Build storefront
+          command: corepack pnpm build
+      - run:
+          name: Build exact Cloudflare Pages client-preview artifact
+          command: corepack pnpm --filter @jayson/storefront build:pages
+      - run:
+          name: Run storefront unit tests
+          command: corepack pnpm test
+      - run:
+          name: Typecheck storefront and static Pages entry
+          command: corepack pnpm typecheck
+      - run:
+          name: Install QA Intel in isolated runner directory
+          command: |
+            mkdir -p /tmp/jayson-qa-runner
+            cd /tmp/jayson-qa-runner
+            npm install --no-audit --no-fund --save-exact @qutecoder/qa-intel@0.2.0
+            npx playwright install chromium
+      - run:
+          name: Start storefront preview server
+          background: true
+          command: corepack pnpm --filter @jayson/storefront preview:pages > /tmp/jayson-storefront.log 2>&1
+      - run:
+          name: Wait for storefront preview server
+          command: |
+            for i in $(seq 1 60); do
+              if curl --fail --silent http://127.0.0.1:3000/ >/dev/null; then exit 0; fi
+              sleep 2
+            done
+            cat /tmp/jayson-storefront.log
+            exit 1
+      - run:
+          name: Execute QA Intel browser smoke scenarios
+          command: |
+            set -o pipefail
+            mkdir -p .qa-results/artifacts
+            /tmp/jayson-qa-runner/node_modules/.bin/qa-runner tests/features/storefront-preview.feature \
+              --base-url http://127.0.0.1:3000 \
+              --results-db .qa-results/results.db \
+              --artifact-dir .qa-results/artifacts | tee .qa-results/qa-intel-output.json
+      - run:
+          name: Responsive mock checkout tests at 320px, 390px, and desktop
+          command: node scripts/qa/responsive-preview.mjs
+      # The Pages artifact is promoted WITHOUT rebuilding only when every
+      # preceding build, unit/type, QA Intel and responsive-browser step passed.
+      - persist_to_workspace:
+          root: .
+          paths:
+            - apps/storefront/dist/pages
+      - store_artifacts:
+          path: .qa-results
+          destination: qa-intel
+      - store_artifacts:
+          path: /tmp/jayson-storefront.log
+          destination: storefront.log
+
+  deploy-preview:
+    docker:
+      - image: cimg/node:24.13
+    resource_class: small
+    environment:
+      EXPECTED_RELEASE_SHA: "<< pipeline.parameters.release_sha >>"
+      CLOUDFLARE_ACCOUNT_ID: "9483d072db9941b23fe0bcd92d76d0d6"
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Verify approved revision, target and exact QA artifact
+          command: |
+            set -eu
+            test "$CIRCLE_BRANCH" = "feat/storefront-demo"
+            test -n "$EXPECTED_RELEASE_SHA"
+            test "$(git rev-parse HEAD)" = "$EXPECTED_RELEASE_SHA"
+            test -n "${CLOUDFLARE_API_TOKEN:-}" || { echo "Cloudflare Pages token missing from restricted CircleCI context"; exit 1; }
+            test -f apps/storefront/dist/pages/index.html
+            grep -qi "Client Preview" apps/storefront/dist/pages/index.html
+            grep -qi "noindex" apps/storefront/dist/pages/index.html
+            test -f apps/storefront/dist/pages/_headers
+            echo "Release target and unchanged QA artifact verified"
+      - run:
+          name: Deploy QA-approved artifact to the isolated client preview
+          command: |
+            npx --yes wrangler@4.151.2 pages deploy apps/storefront/dist/pages \
+              --project-name jayson-tech-client-preview \
+              --branch feat/storefront-demo \
+              --commit-hash "$EXPECTED_RELEASE_SHA" \
+              --commit-message "Approved mock-commerce client preview"
+      - run:
+          name: Verify published Cloudflare Pages commit and live preview
+          command: node scripts/verify-pages-release.mjs
+      - store_artifacts:
+          path: .qa-release
+          destination: preview-release
+
+workflows:
+  manually-requested-validation:
+    when: << pipeline.parameters.run_validation >>
+    jobs:
+      - validate:
+          filters:
+            branches:
+              only:
+                - feat/storefront-demo
+                - main
+
+  manually-requested-preview-qa:
+    when: << pipeline.parameters.run_preview_qa >>
+    jobs:
+      - preview-qa:
+          filters:
+            branches:
+              only:
+                - feat/storefront-demo
+                - main
+
+  # Separate explicit release request. Re-runs all QA against the *same*
+  # Git revision and promotes the workspace artifact only if preview-qa passes.
+  # CLOUDFLARE_API_TOKEN exists solely in the restricted deployment context.
+  manually-requested-preview-release:
+    when: << pipeline.parameters.run_preview_release >>
+    jobs:
+      - preview-qa:
+          filters:
+            branches:
+              only:
+                - feat/storefront-demo
+      - deploy-preview:
+          context: jayson-pages-previe
+          requires:
+            - preview-qa
+          filters:
+            branches:
+              only:
+                - feat/storefront-demo

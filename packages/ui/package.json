@@ -1,0 +1,8 @@
+{
+  "name": "@jayson/ui",
+  "private": true,
+  "version": "0.0.0",
+  "exports": {
+    "./tokens.css": "./src/styles/tokens.css"
+  }
+}
