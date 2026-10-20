@@ -98,3 +98,66 @@ Scenario: Demo account links to customer experiences
   And I click the button "Open account"
   Then I should see the heading "My account preview"
   And the text "Demo Customer" should exist
+
+@preview @product
+Scenario: Product detail quantity changes the cart
+  Given I navigate to "/#/product/headphones"
+  When I wait for testid:storefront-hydrated
+  And I click the button "Increase product quantity"
+  And I click the button "Add to Cart"
+  Then I should see the heading "Your Cart (2)"
+  And the text "Illustrative total" should exist
+
+@preview @promo
+Scenario: Demo voucher applies the stated discount
+  Given I navigate to "/"
+  When I wait for testid:storefront-hydrated
+  And I click the button "Add Wireless Headphones to cart"
+  And I type "JAYSON10" into the field "Promo code"
+  Then the text "Demo discount applied!" should exist
+
+@preview @persistence
+Scenario: Cart survives a page reload in the same browser
+  Given I navigate to "/"
+  When I wait for testid:storefront-hydrated
+  And I click the button "Add Wireless Headphones to cart"
+  And I navigate to "/"
+  And I wait for testid:storefront-hydrated
+  And I click the button "Open cart"
+  Then I should see the heading "Your Cart (1)"
+
+@preview @persistence
+Scenario: Simulated order history persists through page reload
+  Given I navigate to "/"
+  When I wait for testid:storefront-hydrated
+  And I click the button "Add Wireless Headphones to cart"
+  And I click the button "Continue to demo checkout"
+  And I click the button "Review demo order"
+  And I click the button "Place demo order (no payment)"
+  And I navigate to "/"
+  And I wait for testid:storefront-hydrated
+  And I click the button "Open account"
+  And I click the button "Orders"
+  Then I should see the heading "Demo orders"
+  And the text "Wireless Headphones" should exist
+
+@preview @negative
+Scenario: Invalid sample email cannot proceed to simulated order review
+  Given I navigate to "/"
+  When I wait for testid:storefront-hydrated
+  And I click the button "Add Wireless Headphones to cart"
+  And I click the button "Continue to demo checkout"
+  And I type "not-an-email" into the field "Email address"
+  And I click the button "Review demo order"
+  Then I should see the alert "Please complete the sample name, valid email, phone and delivery address."
+
+@preview @tracking
+Scenario: Example order tracking can advance without shipping anything
+  Given I navigate to "/"
+  When I wait for testid:storefront-hydrated
+  And I click the button "Add Wireless Headphones to cart"
+  And I click the button "Continue to demo checkout"
+  And I click the button "Review demo order"
+  And I click the button "Place demo order (no payment)"
+  And I click the button "Preview next step"
+  Then the text "Example tracking" should exist
