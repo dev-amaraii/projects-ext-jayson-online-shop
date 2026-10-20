@@ -52,7 +52,7 @@ try {
      resultsRight: resultsRect.right,
      gridLeft: gridRect.left,
      gridRight: gridRect.right,
-     columns: getComputedStyle(grid).gridTemplateColumns.split(/\\s+/).length,
+     columns: getComputedStyle(grid).gridTemplateColumns.split(/\s+/).length,
      categoryChipsScroll: filters.scrollWidth > filters.clientWidth + 1,
      cards,
     }
