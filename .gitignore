@@ -6,3 +6,5 @@ dist
 .env.*
 !.env.example
 apps/storefront/src/routeTree.gen.ts
+.qa-results/
+.wrangler/
